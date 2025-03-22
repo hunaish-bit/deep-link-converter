@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Redirecting...</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <script>
+        function redirect() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const webUrl = urlParams.get('web');
+            const platform = urlParams.get('platform');
+            const id = urlParams.get('id');
+
+            if (platform === 'youtube') {
+                // Check if it's a Shorts URL
+                const isShorts = webUrl.includes('/shorts/');
+                
+                // Try to open YouTube app with appropriate format
+                if (isShorts) {
+                    window.location.href = `vnd.youtube://shorts/${id}`;
+                    
+                    // Second attempt with alternative scheme after small delay
+                    setTimeout(function() {
+                        window.location.href = `youtube://shorts/${id}`;
+                    }, 1000);
+                } else {
+                    window.location.href = `vnd.youtube://${id}`;
+                    
+                    // Second attempt with alternative scheme after small delay
+                    setTimeout(function() {
+                        window.location.href = `youtube://watch?v=${id}`;
+                    }, 1000);
+                }
+                
+                // Final fallback to web URL after longer delay
+                setTimeout(function() {
+                    window.location.href = webUrl;
+                }, 2500);
+            } else if (platform === 'instagram') {
+                window.location.href = `instagram://media?id=${id}`;
+                setTimeout(function() {
+                    window.location.href = webUrl;
+                }, 2500);
+            }
+        }
+    </script>
+</head>
+<body onload="redirect()">
+    <div style="text-align: center; padding: 20px; font-family: Arial, sans-serif;">
+        <h2>Opening App...</h2>
+        <p>If nothing happens, <a id="fallback" href="#">click here</a></p>
+    </div>
+    <script>
+        document.getElementById('fallback').href = new URLSearchParams(window.location.search).get('web');
+    </script>
+</body>
+</html> 
