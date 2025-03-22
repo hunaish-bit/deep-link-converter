@@ -19,6 +19,8 @@
             background: white;
             border-radius: 8px;
             box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            max-width: 90%;
+            width: 400px;
         }
         .button {
             display: inline-block;
@@ -29,44 +31,62 @@
             border-radius: 4px;
             margin-top: 10px;
         }
+        .error {
+            color: #d32f2f;
+            margin-top: 10px;
+        }
     </style>
     <script>
-        function redirect() {
-            const urlParams = new URLSearchParams(window.location.search);
-            const webUrl = urlParams.get('web');
-            const platform = urlParams.get('platform');
-            const id = urlParams.get('id');
+        function logError(error) {
+            console.error('Redirect error:', error);
+        }
 
-            if (platform === 'youtube') {
-                // Check if it's a Shorts URL
-                const isShorts = webUrl.includes('/shorts/');
-                
-                // Try to open YouTube app with appropriate format
-                if (isShorts) {
-                    window.location.href = `vnd.youtube://shorts/${id}`;
-                    
-                    // Second attempt with alternative scheme after small delay
-                    setTimeout(function() {
-                        window.location.href = `youtube://shorts/${id}`;
-                    }, 1000);
-                } else {
-                    window.location.href = `vnd.youtube://${id}`;
-                    
-                    // Second attempt with alternative scheme after small delay
-                    setTimeout(function() {
-                        window.location.href = `youtube://watch?v=${id}`;
-                    }, 1000);
+        function redirect() {
+            try {
+                const urlParams = new URLSearchParams(window.location.search);
+                const webUrl = urlParams.get('web');
+                const platform = urlParams.get('platform');
+                const id = urlParams.get('id');
+
+                if (!webUrl || !platform || !id) {
+                    throw new Error('Missing required parameters');
                 }
-                
-                // Final fallback to web URL after longer delay
-                setTimeout(function() {
-                    window.location.href = webUrl;
-                }, 2500);
-            } else if (platform === 'instagram') {
-                window.location.href = `instagram://media?id=${id}`;
-                setTimeout(function() {
-                    window.location.href = webUrl;
-                }, 2500);
+
+                if (platform === 'youtube') {
+                    // Check if it's a Shorts URL
+                    const isShorts = webUrl.includes('/shorts/');
+                    
+                    // Try to open YouTube app with appropriate format
+                    if (isShorts) {
+                        window.location.href = `vnd.youtube://shorts/${id}`;
+                        
+                        // Second attempt with alternative scheme after small delay
+                        setTimeout(function() {
+                            window.location.href = `youtube://shorts/${id}`;
+                        }, 1000);
+                    } else {
+                        window.location.href = `vnd.youtube://${id}`;
+                        
+                        // Second attempt with alternative scheme after small delay
+                        setTimeout(function() {
+                            window.location.href = `youtube://watch?v=${id}`;
+                        }, 1000);
+                    }
+                    
+                    // Final fallback to web URL after longer delay
+                    setTimeout(function() {
+                        window.location.href = webUrl;
+                    }, 2500);
+                } else if (platform === 'instagram') {
+                    window.location.href = `instagram://media?id=${id}`;
+                    setTimeout(function() {
+                        window.location.href = webUrl;
+                    }, 2500);
+                }
+            } catch (error) {
+                logError(error);
+                document.getElementById('error').style.display = 'block';
+                document.getElementById('error').textContent = 'Error: ' + error.message;
             }
         }
 
@@ -78,9 +98,13 @@
     <div class="container">
         <h2>Opening App...</h2>
         <p>If nothing happens, <a class="button" id="fallback" href="#">click here</a></p>
+        <p id="error" class="error" style="display: none;"></p>
     </div>
     <script>
-        document.getElementById('fallback').href = new URLSearchParams(window.location.search).get('web');
+        const webUrl = new URLSearchParams(window.location.search).get('web');
+        if (webUrl) {
+            document.getElementById('fallback').href = webUrl;
+        }
     </script>
 </body>
 </html> 
